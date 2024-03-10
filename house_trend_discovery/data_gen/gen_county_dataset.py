@@ -1,9 +1,10 @@
 import click
 import googlemaps
+import itertools
 import json
 from latloncalc.latlon import LatLon, Latitude, Longitude
 import os
-from models import Area, LatLng, Location
+from models import Area, LatLng, Location, County
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -16,7 +17,16 @@ def get_address_from_lat_lng(latlng):
     return None
 
 def get_county(a):
-    return next((x['long_name'] for x in a['address_components'] if 'County' in x['long_name']), '')
+    county_index = next((i for i in range(len(a['address_components'])) if 'County' in a['address_components'][i]['long_name']), None)
+    county_name = ''
+    state_name = ''
+
+    if county_index is not None:
+        county_name = a['address_components'][county_index]['long_name']
+        if county_index+1 < len(a['address_components']):
+            state_name = a['address_components'][county_index+1]['long_name']
+
+    return County(name=county_name, state=state_name)
 
 def create_location_result(a):
     county = get_county(a)
@@ -107,7 +117,6 @@ def get_addresses(d, area):
 
     lat_lngs = generate_lat_lngs(d, area)
 
-    # TODO get addresses via geocode API
     addresses = [get_address_from_lat_lng(l) for l in lat_lngs]
     return [create_location_result(a) for a in addresses if a is not None]
 
@@ -127,11 +136,25 @@ def gen_addrs(name, d, out):
     with open(out, 'w') as f:
         f.write(json.dumps([json.loads(r.model_dump_json()) for r in res]))
 
+@click.command(help='Retrieves historical house data for addresses in input file. Addresses must follow Location schema')
+@click.option('--i', help='File to read Locations data from', type=click.Path(exists=True))
+def house_info(i: str):
+    addresses = []
+    with open(i, 'r') as f:
+        addresses = [Location(**l) for l in json.load(f)]
+
+    grouped_addreses = itertools.groupby(
+            sorted(addresses, key=lambda x: f"{x.county.name} {x.county.state}"), lambda x: x.county)
+    for (county, addreses) in grouped_addreses:
+        print(county)
+        print(addresses)
+
 @click.group()
 def cli():
     pass
 
 cli.add_command(gen_addrs)
+cli.add_command(house_info)
 
 if __name__ == '__main__':
     cli()
