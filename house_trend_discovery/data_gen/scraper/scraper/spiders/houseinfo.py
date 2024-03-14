@@ -1,55 +1,12 @@
-import json
-from pathlib import Path
-import os
-import time
-import re
-import scrapy
-from typing import Optional
 from urllib.parse import quote
-from house_trend_discovery.data_gen import PremiseScrapeResult, County, LatLng
+from house_trend_discovery.data_gen.scraper import Base
 
-
-class HouseInfoGetter(scrapy.Spider):
+class HouseInfoGetter(Base):
     name = "houseinfo"
-    session_id = None
 
-    def start_requests(self):
-        def create_start_url_pair(address: str) -> str:
-            encoded_addr = quote(address)
-            return (encoded_addr, f"https://www.snoco.org/proptax/search.aspx?address={encoded_addr}")
-
-        urls = []
-        with open(f"./inputs/{self.name}.json", "r") as f:
-            addresses = json.load(f)
-            urls = [create_start_url_pair(a) for a in addresses]
-
-        for (key, url) in urls:
-            yield scrapy.Request(url=url, callback=self.parse(key))
-
-    def write_out_path(self, key: str, pn: int, url: str, html: str):
-        session_id = self.get_session_id()
-
-        with open(f"./data/{session_id}/{key}/page_{pn}.html", "w") as f:
-            f.write(html)
-
-        with open(f"./data/{session_id}/{key}/urls/url_{pn}.txt", "w") as f:
-            f.write(url)
-
-    def get_session_id(self) -> str:
-        if self.session_id is None:
-            self.session_id = f"{self.name}-{time.strftime('%H-%M-%S', time.gmtime())}"
-        return self.session_id
-
-    def init_dirs(self, key: str):
-        def safe_mkdir(path):
-            if not os.path.isdir(path):
-                os.mkdir(path)
-        session_id = self.get_session_id()
-
-        safe_mkdir('./data')
-        safe_mkdir(f'./data/{session_id}')
-        safe_mkdir(f'./data/{session_id}/{key}')
-        safe_mkdir(f'./data/{session_id}/{key}/urls')
+    def create_start_url_pair(self, address: str) -> (str, str):
+        encoded_addr = quote(address)
+        return (encoded_addr, f"https://www.snoco.org/proptax/search.aspx?address={encoded_addr}")
 
     def parse(self, key):
         self.init_dirs(key)
