@@ -97,6 +97,7 @@ house_trend_discovery/data_gen/scraper/data/
 ```python
 #house_trend_discovery/data_gen/parsers/scrapername.py
 from house_trend_discovery.data_gen.parsers.parser import Parser, ScraperName, HomeScrapeResults
+from bs4 import BeautifulSoup
 
 class ScraperNameParser(Parser):
     def parse(self, output_file_paths: dict[ScraperName, List[HomeScrapeResults]]) -> List[PremiseScrapeResult]:
@@ -122,11 +123,17 @@ class ScraperNameParser(Parser):
             for (page_number, url_path, page_path) in home_pages:
                 if page_number == 1:
                     res.update(parse_p1(url_path, page_path))
-                elif page_number == 2:
-                    res.update(parse_p2(url_path, page_path))
             results.append(res)
 
         return results
+
+def parse_p1(url_path: str, page_path: str):
+    url = get_file(url_path)
+    html = get_file(page_path)
+    soup = BeautifulSoup(html, 'html.parser')
+
+    return combine_results(parse_table(soup.find('table', id='mGrid')), {'url':url})
+
 
 if __name__ == "__main__":
     print(ScraperNameParser().run().to_json())
