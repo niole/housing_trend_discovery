@@ -1,3 +1,4 @@
+from abc import ABC
 import json
 from pathlib import Path
 import os
@@ -6,7 +7,7 @@ import scrapy
 import time
 from typing import Optional
 
-class Base(scrapy.Spider):
+class Base(scrapy.Spider, ABC):
     """
     You override
     """
@@ -15,7 +16,6 @@ class Base(scrapy.Spider):
     session_id = None
 
     """
-    You override
     Input
         element from scraper input json  list
 
@@ -23,12 +23,11 @@ class Base(scrapy.Spider):
         (key, url), where key identifies the house being scraped and will be used later to identify
         home entries in the database, and url which is the start url to begin scraping from
     """
+    @abstractmethod
     def create_start_url_pair(self, input_value) -> (str, str, Optional[dict]):
         return ("", "", None)
 
     """
-    You override
-
     This is the first function that scrapy calls with the urls you provided it.
 
     Input
@@ -38,6 +37,7 @@ class Base(scrapy.Spider):
         A scraper function that parses the response object from scrapy and saves the html file
         contents to the file system. The out path will be namespaced by the key
     """
+    @abstractmethod
     def parse(self, key):
         def block(response):
             # example
@@ -55,8 +55,6 @@ class Base(scrapy.Spider):
         return self.parse(key)
 
     """
-    Don't override
-
     Writes the found html files to the file system for parsing.
 
     Input

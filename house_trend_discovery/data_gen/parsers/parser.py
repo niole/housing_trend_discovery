@@ -1,3 +1,4 @@
+from abc import ABC
 import click
 from glob import glob
 import posixpath
@@ -21,18 +22,15 @@ UrlPath = NewType("UrlPath", str)
 PagePath = NewType("PagePath", str)
 HomeScrapeResults: TypeAlias = List[Tuple[PageNumber, UrlPath, PagePath]]
 
-class Parser:
+class Parser(ABC):
     session_id: Optional[str] = None
     scraper_name: Optional[str] = None
     results: List[PremiseScrapeResult] = []
 
     data_base_path = "house_trend_discovery/data_gen/scraper/data"
 
+    @abstractmethod
     def parse(self, output_file_paths: dict[str, List[Tuple[int, str, str]]]) -> List[PremiseScrapeResult]:
-        """
-        **You override**
-        TODO use ABC
-        """
         print('parser base class output file paths: \n', output_file_paths)
         return []
 
@@ -94,7 +92,6 @@ class Parser:
         page_p = r'\/page_([0-9]+).html$'
         url_p = r'\/url_([0-9]+).txt$'
 
-        # TODO group by home id, i.e. the directory inside of session_id
         home_scrape_results = []
         home_dirs = glob(f"{self.data_base_path}/{session_id}/*")
         for home_dir in home_dirs:
