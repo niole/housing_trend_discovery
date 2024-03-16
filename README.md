@@ -38,6 +38,7 @@ poetry run python \
 
 from house_trend_discovery.data_gen.scraper import Base
 from house_trend_discovery.data_gen.models import Location
+from urllib.parse import quote
 
 class NewScraper(Base):
     name = "scrapername"
