@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import click
 from glob import glob
 import posixpath

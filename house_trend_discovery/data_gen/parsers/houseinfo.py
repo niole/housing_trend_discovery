@@ -4,12 +4,12 @@ import os
 import re
 from typing import List, Tuple
 from house_trend_discovery.data_gen.models import PremiseScrapeResult
-from house_trend_discovery.data_gen.parsers.parser import Parser, ScraperName, HomeScrapeResults
+from house_trend_discovery.data_gen.parsers.parser import Parser as BaseParser, ScraperName, HomeScrapeResults
 
 """
 parses html for output from the houseinfo scrapy spider
 """
-class HouseInfoParser(Parser):
+class Parser(BaseParser):
     def parse(self, output_file_paths: dict[ScraperName, List[HomeScrapeResults]]) -> List[PremiseScrapeResult]:
         houseinfo_scrape_results = self._ingest_houseinfo_scrape_results(output_file_paths)
         return list(chain(*[self._build_scrape_result(r) for r in houseinfo_scrape_results]))
@@ -127,4 +127,4 @@ def no_nones(es: list) -> list:
     return [e for e in es if e is not None]
 
 if __name__ == "__main__":
-    print(HouseInfoParser(scraper_name="houseinfo").run().to_json())
+    print(Parser(scraper_name="houseinfo").run().to_json())

@@ -143,3 +143,10 @@ if __name__ == "__main__":
 ```sh
 poetry run python house_trend_discovery/data_gen/parsers/scrapername.py | jq
 ```
+
+## Save Data to Dataset
+
+Ingest data into the database.
+```sh
+poetry run python house_trend_discovery/data_gen/dataset.py --name scrapername
+```
