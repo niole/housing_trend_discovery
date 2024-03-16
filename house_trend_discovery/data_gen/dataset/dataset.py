@@ -12,8 +12,6 @@ def build_db_rows(scraper_name: str) -> List[PremiseDetails]:
 
     street_addr_result_map = dict([(get_street_addr(r.premise_address).lower(), r) for r in scrape_results])
     street_addr_input_map = dict([(get_street_addr(r.address).lower(), r) for r in scrape_inputs])
-    print(street_addr_result_map.keys())
-    print(street_addr_input_map.keys())
 
     results = []
     for (key, location) in street_addr_input_map.items():
@@ -33,10 +31,10 @@ def build_db_rows(scraper_name: str) -> List[PremiseDetails]:
 def cli(scraper_name: Optional[str] = None):
     if scraper_name is not None:
         results = build_db_rows(scraper_name)
+        # TODO send to a db
         print(results)
 
 def get_street_addr(address: str) -> str:
-    print(address)
     return address.split(",")[0]
 
 def get_parser_results(scraper_name: str) -> List[PremiseScrapeResult]:
