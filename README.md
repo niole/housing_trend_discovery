@@ -117,7 +117,7 @@ class ScraperNameParser(Parser):
             self, output_file_paths: dict[ScraperName, List[HomeScrapeResults]]) -> List[dict]:
         results = []
 
-        for home_pages in output_file_paths['houseinfo']:
+        for home_pages in output_file_paths['scrapername']:
             res = {}
             for (page_number, url_path, page_path) in home_pages:
                 if page_number == 1:
