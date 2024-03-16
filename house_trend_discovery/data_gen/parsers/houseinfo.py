@@ -1,10 +1,9 @@
 from bs4 import BeautifulSoup
 from itertools import chain
-import json
 import os
 import re
 from typing import List, Tuple
-from house_trend_discovery.data_gen.models import PremiseScrapeResult, County, LatLng
+from house_trend_discovery.data_gen.models import PremiseScrapeResult
 from house_trend_discovery.data_gen.parsers.parser import Parser, ScraperName, HomeScrapeResults
 
 """
@@ -16,27 +15,29 @@ class HouseInfoParser(Parser):
         return list(chain(*[self._build_scrape_result(r) for r in houseinfo_scrape_results]))
 
     def _build_scrape_result(self, raw: dict) -> List[PremiseScrapeResult]:
-        # TODO get county, location from somewhere
-        county = County(name="fake", state="fake"),
-        premise_location = LatLng(lat=1, lng=1),
-        market_values = raw["Market Total"]
-        year_built = raw["Year Built"]
-        years_assessed = raw["years_assessed"][1:]
-
         res = []
-        for i in range(len(market_values)):
-            market_value = market_values[i]
-            year_assessed = years_assessed[i]
-            res.append(PremiseScrapeResult(
-                assessment_urls = [raw.get('url1'), raw.get('url2')],
-                county = county,
-                premise_location = premise_location,
-                premise_address = raw["Location Address"],
-                parcel_number = raw.get("Parcel Number"),
-                year_assessed = year_assessed,
-                dollar_value = market_value,
-                year_built = year_built,
-            ))
+        try:
+            market_values = raw["Market Total"]
+            year_built = raw["Year Built"]
+            years_assessed = raw["years_assessed"][1:]
+
+            res = []
+            for i in range(len(market_values)):
+                try:
+                    market_value = market_values[i]
+                    year_assessed = years_assessed[i]
+                    res.append(PremiseScrapeResult(
+                        assessment_urls = [raw.get('url1'), raw.get('url2')],
+                        premise_address = raw["Location Address"],
+                        parcel_number = raw.get("Parcel Number"),
+                        year_assessed = year_assessed,
+                        dollar_value = market_value,
+                        year_built = year_built,
+                    ))
+                except Exception as e:
+                    print(f"Failed to build scrape result for index i = {i} of {raw}: {e}")
+        except Exception as e:
+            print(f"Failed to build scrape result for {raw}: {e}")
         return res
 
     def _ingest_houseinfo_scrape_results(
@@ -47,9 +48,15 @@ class HouseInfoParser(Parser):
             res = {}
             for (page_number, url_path, page_path) in home_pages:
                 if page_number == 1:
-                    res.update(parse_p1(url_path, page_path))
+                    try:
+                        res.update(parse_p1(url_path, page_path))
+                    except Exception as e:
+                        print(f"Failed to parse page 1 for {url_path}: {e}")
                 elif page_number == 2:
-                    res.update(parse_p2(url_path, page_path))
+                    try:
+                        res.update(parse_p2(url_path, page_path))
+                    except Exception as e:
+                        print(f"Failed to parse page 2 for {url_path}: {e}")
             results.append(res)
 
         return results
@@ -120,5 +127,4 @@ def no_nones(es: list) -> list:
     return [e for e in es if e is not None]
 
 if __name__ == "__main__":
-    res = HouseInfoParser(scraper_name="houseinfo").run()
-    print(json.dumps([json.loads(r.model_dump_json()) for r in res]))
+    print(HouseInfoParser(scraper_name="houseinfo").run().to_json())

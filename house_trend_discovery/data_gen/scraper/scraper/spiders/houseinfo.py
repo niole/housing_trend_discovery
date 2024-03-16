@@ -1,13 +1,20 @@
 import scrapy
 from urllib.parse import quote
+from typing import Optional
 from house_trend_discovery.data_gen.scraper.base import Base
+from house_trend_discovery.data_gen.models import Location
 
 class HouseInfoGetter(Base):
     name = "houseinfo"
 
-    def create_start_url_pair(self, address: str) -> (str, str):
+    def create_start_url_pair(self, location_json: dict) -> (str, str):
+        location = Location(**location_json)
+        address = location.address.split(",")[0]
         encoded_addr = quote(address)
-        return (encoded_addr, f"https://www.snoco.org/proptax/search.aspx?address={encoded_addr}")
+        return (
+            encoded_addr,
+            f"https://www.snoco.org/proptax/search.aspx?address={encoded_addr}"
+        )
 
     def parse(self, key):
         def block(response):

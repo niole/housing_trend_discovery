@@ -1,6 +1,7 @@
 import click
 from glob import glob
 import posixpath
+import json
 import os
 import re
 from itertools import groupby
@@ -23,6 +24,7 @@ HomeScrapeResults: TypeAlias = List[Tuple[PageNumber, UrlPath, PagePath]]
 class Parser:
     session_id: Optional[str] = None
     scraper_name: Optional[str] = None
+    results: List[PremiseScrapeResult] = []
 
     data_base_path = "house_trend_discovery/data_gen/scraper/data"
 
@@ -42,9 +44,17 @@ class Parser:
         """
         self.session_id = sid
         self.scraper_name = scraper_name
+        self.results = []
 
-    def run(self) -> List[PremiseScrapeResult]:
-        return self.parse(self._get_scraper_output_file_paths())
+    def run(self):
+        self.results = self.parse(self._get_scraper_output_file_paths())
+        return self
+
+    def to_json(self) -> str:
+        return json.dumps([json.loads(r.model_dump_json()) for r in self.results])
+
+    def get_results(self) -> List[PremiseScrapeResult]:
+        return self.results
 
     def _get_scraper_output_file_paths(self) -> dict[ScraperName, List[HomeScrapeResults]]:
         """
