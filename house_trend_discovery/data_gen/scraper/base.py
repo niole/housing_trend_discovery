@@ -25,12 +25,14 @@ class Base(scrapy.Spider):
     def create_start_url_pair(self, input_value) -> (str, str):
         return ("", "")
 
+    def run(self, key: str):
+        self.init_dirs(key)
+        return self.parse(key)
+
     """
     You override
 
     This is the first function that scrapy calls with the urls you provided it.
-
-    **You must call self.init_dirs(key)**
 
     Input
         key: the key that identifies the home being scraped
@@ -40,8 +42,6 @@ class Base(scrapy.Spider):
         contents to the file system. The out path will be namespaced by the key
     """
     def parse(self, key):
-        self.init_dirs(key)
-
         def block(response):
             # example
             self.write_out_path(
@@ -80,7 +80,7 @@ class Base(scrapy.Spider):
             urls = [self.create_start_url_pair(a) for a in inputs]
 
         for (key, url) in urls:
-            yield scrapy.Request(url=url, callback=self.parse(key))
+            yield scrapy.Request(url=url, callback=self.run(key))
 
 
     def get_session_id(self) -> str:
@@ -100,8 +100,6 @@ class Base(scrapy.Spider):
         safe_mkdir(f'./data/{session_id}/{key}/urls')
 
     def parse(self, key):
-        self.init_dirs(key)
-
         def block(response):
             self.write_out_path(
                 key=key,

@@ -24,12 +24,12 @@ class Location(BaseModel):
     location: LatLng
 
 class PremiseScrapeResult(BaseModel):
-    assessment_urls: List[str]
-    assessment_page_content: str
+    assessment_urls: List[Optional[str]]
     county: County
     premise_address: str
     premise_location: LatLng
-    year_assessed: Optional[str] = None
+    year_assessed: int
+    parcel_number: Optional[str] = None
     dollar_value: Optional[int] = None
     sq_feet: Optional[int] = None
     year_built: Optional[int] = None
