@@ -22,7 +22,7 @@ poetry run python \
     house_trend_discovery/data_gen/gen_county_dataset.py  gen-addrs \
     --name "Mountlake Terrace, WA, USA" \
     --d 1
-    --outpuppeteer_crawler/inputs/scrapername.json
+    --out puppeteer_crawler/inputs/scrapername.json
 ```
 
 ## Define a crawler
