@@ -1,4 +1,7 @@
-# Overview
+# County Website Scraping
+
+House prices are tracked for free on county government websites. This establishes a plugin framework for writing scrapers
+and html processors, which retrieve this data in a standardized way.
 
 - generate address inputs, write a crawler to ingest those inputs, write a parser to parse the saved pages, all files are named the same: "scraper name"
 - Put everything in their correct respective locations
@@ -11,7 +14,7 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
     --inputs ./puppeteer_crawler/inputs
 ```
 
-# Data Processing
+## Generate address inputs for crawler
 ```sh
 # generate addresses to run scraping on
 # use these addresses as inputs to scrapers
@@ -19,33 +22,10 @@ poetry run python \
     house_trend_discovery/data_gen/gen_county_dataset.py  gen-addrs \
     --name "Mountlake Terrace, WA, USA" \
     --d 1
+    --outpuppeteer_crawler/inputs/scrapername.json
 ```
 
-# County Website Scraping
-
-House prices are tracked for free on county government websites. This establishes a plugin framework for writing scrapers
-and html processors, which retrieve this data in a standardized way.
-
-Do the following to support a new website.
-
-- Define a spider in `house_trend_discovery/data_gen/scraper/scraper/spiders/` using `Scrapy`
-- Define a json array inputs for the scraper in `house_trend_discovery/data_gen/scraper` that is named after your Scrapy scraper's `self.name`, i.e. `<name>.json`. Just use the output of `gen_county_dataset.py  gen-addrs`
-- Define a parser in `house_trend_discovery/data_gen/parsers/` using `BeautifulSoup`
-
-## Spider Definition and Output
-
-Example
-
-- generate scraper inputs
-```sh
-poetry run python \
-    house_trend_discovery/data_gen/gen_county_dataset.py  gen-addrs \
-    --name "Mountlake Terrace, WA, USA" \
-    --d 1
-    --out house_trend_discovery/data_gen/scraper/inputs/scrapername.json
-```
-
-- Define a crawler
+## Define a crawler
 ```js
 // puppeteer_crawler/scrapername.js
 import puppeteer from 'puppeteer';
@@ -99,7 +79,7 @@ puppeteer_crawler/data/
             - url_1.txt
 ```
 
-- then define a parser to read the data into usable data structures
+Then define a parser to read the data into usable data structures.
 
 ## Parser Definition and Output
 
