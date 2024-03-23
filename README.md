@@ -9,7 +9,7 @@ and html processors, which retrieve this data in a standardized way.
 - Generate the data:
 ```sh
 poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
-    --name scrapername \
+    --scraper_name scrapername \
     --data ./puppeteer_crawler/data \
     --inputs ./puppeteer_crawler/inputs
 ```

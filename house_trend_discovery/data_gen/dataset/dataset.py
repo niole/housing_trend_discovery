@@ -31,14 +31,18 @@ def build_db_rows(scraper_name: str, data_dir: str, inputs_dir: str) -> List[Pre
 @click.option("--data", help="Path to data directory", default="./data", type=click.Path(exists=True))
 @click.option("--inputs", help="Path to inputs directory", default="./inputs", type=click.Path(exists=True))
 @click.option("--to_json", is_flag=True, help="Format the ouput as json", default=True)
-def cli(scraper_name: Optional[str], data: str, inputs: str, to_json: bool):
+@click.option("--out", help="Outpath for data", default=None, type=click.Path())
+def cli(scraper_name: Optional[str], data: str, inputs: str, to_json: bool, out: str):
     if scraper_name is not None:
         results = build_db_rows(scraper_name, data, inputs)
+
         if to_json:
-            json_res = json.dumps([json.loads(m.model_dump_json()) for m in results])
-            print(json_res)
+            results = json.dumps([json.loads(m.model_dump_json()) for m in results])
+
+        if out:
+            with open(out, 'w') as f:
+                f.write(results)
         else:
-            # TODO send to a db
             print(results)
 
 def get_street_addr(address: str) -> str:

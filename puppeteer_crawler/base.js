@@ -125,10 +125,19 @@ class Base {
         return `./inputs/${this.name}.json`;
     }
 
+    getScreenShotFileName(key, pn) {
+        return `${this.getScreenshotsDirPath(key)}/${pn}.png`;
+    }
+
+    getScreenshotsDirPath(key) {
+        return `${this.getOutBasePath()}/${key}/screenshots`;
+    }
+
     async initDirs(key) {
         try {
               await mkdir(this.getOutBasePath(), { recursive: true });
               await mkdir(`${this.getOutBasePath()}/${key}`, { recursive: true });
+              await mkdir(this.getScreenshotsDirPath(key), { recursive: true });
               const createDir = await mkdir(`${this.getOutBasePath()}/${key}/urls`, { recursive: true });
               console.log(`created ${createDir}`);
         } catch (err) {
