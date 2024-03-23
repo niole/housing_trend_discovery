@@ -61,6 +61,8 @@ class HouseInfoCrawler extends Base {
         ];
     }
 }
+
+new HouseInfo().run()
 ```
 
 - run the scrapername crawler
@@ -143,3 +145,7 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
     --data ./puppeteer_crawler/data \
     --inputs ./puppeteer_crawler/inputs
 ```
+
+# TODO
+
+- sometimes, many of the generated addresses are not residential
