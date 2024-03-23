@@ -32,58 +32,55 @@ poetry run python \
     --out house_trend_discovery/data_gen/scraper/inputs/scrapername.json
 ```
 
-- Define a spider for crawling
-```python
-# house_trend_discovery/data_gen/scraper/scraper/spiders/scrapername.py
+- Define a crawler
+```js
+// puppeteer_crawler/scrapername.js
+import puppeteer from 'puppeteer';
+import Base from './base.js';
 
-from house_trend_discovery.data_gen.scraper import Base
-from house_trend_discovery.data_gen.models import Location
-from urllib.parse import quote
+class HouseInfoCrawler extends Base {
+    constructor(sessionId) {
+        super(sessionId)
+        this.name = "houseinfo";
+    }
 
-class NewScraper(Base):
-    name = "scrapername"
+    parse(key, startUrl) {
+        console.log("Crawling ", key, " ", startUrl);
+        (async () => {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
 
-    def create_start_url_pair(self, addr_json: dict) -> (str, str):
-        location = Location(**location_json)
-        home_id = quote(location.address)
-        return (home_id, f"https://www.countywebiste.gov/{home_id}")
+            await page.goto(startUrl);
 
-    def parse(self, key):
-        def block(response):
-            self.write_out_path(
-                key=key,
-                pn=1,
-                url=response.url,
-                html=response.body.decode()
-            )
+            const page1 = await this.getPageResults(page);
+            await this.writeOutPath(key, 1, page1.url, page1.html);
 
-            parcel_number = response.css("#parcel_number").get()
-            next_page = f"https://www.countywebiste.gov?parcel_number={parcel_number}"
+            await browser.close();
+        })();
+    }
 
-            def download_page(response):
-                self.write_out_path(
-                    key=key,
-                    pn=2,
-                    url=response.url,
-                    html=response.body.decode()
-                )
-
-            yield scrapy.Request(next_page, callback=download_page)
-
-        return block
+    createStartUrlPair(location) {
+        const streetAddress = location.address;
+        const encodedKey = encodeURI(streetAddress);
+        return [
+            encodedKey,
+            "https://mysuperfake-website.com.gov"
+        ];
+    }
+}
 ```
 
-- run the spider
+- run the scrapername crawler
 ```sh
-cd house_trend_discovery/data_gen/scraper
-poetry run scrapy crawl scrapername
+cd puppeteer_crawler
+node scrapername.js
 ```
 
 - Verify that the output was saved. The scraper saves 1 file for the url, and another file for the html page contents to the following dir structure:
 ```sh
-house_trend_discovery/data_gen/scraper/data/
-- {session_id}/ # determined by the scraper base, it's name and the date
-    - {key}/ # determined by the scraper implementation, corresponds to an individual house
+puppeteer_crawler/data/
+- {session_id}/ # determined by the scraper base, it's name and the date, scrapername-12347879
+    - {key}/ # determined by the scraper implementation, corresponds to an individual house, encodedKey
         - page_1.html
         - urls/
             - url_1.txt

@@ -54,5 +54,4 @@ class HouseInfoCrawler extends Base {
     }
 }
 
-console.log(process.argv);
 new HouseInfoCrawler().run();
