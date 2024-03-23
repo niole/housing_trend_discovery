@@ -49,7 +49,8 @@ class Parser(ABC):
         self.results = []
 
     def run(self):
-        self.results = self.parse(self._get_scraper_output_file_paths())
+        output_paths = self._get_scraper_output_file_paths()
+        self.results = self.parse(output_paths)
         return self
 
     def to_json(self) -> str:
@@ -76,14 +77,22 @@ class Parser(ABC):
         )
         sessions_outputs = [list(vs) for (_, vs) in session_groups]
 
-        # TODO this doesn't actually sort correctly
         # [(scraper_name, session_id)]
-        latest_unique_sessions = [sorted(gs)[-1] for gs in sessions_outputs if len(gs) > 0]
+        latest_unique_sessions = [self._get_recent_session_id(gs) for gs in sessions_outputs if len(gs) > 0]
 
         keyed_latest_session_paths: List[Tuple[ScraperName, List[HomeScrapeResults]]] = \
             [(session_key, self._get_home_scrape_results(sid)) for (session_key, sid) in latest_unique_sessions]
 
         return dict(keyed_latest_session_paths)
+
+    def _get_recent_session_id(self, sessions_ids: List[Tuple[str, str]]) -> Tuple[str, str]:
+        if len(sessions_ids) == 0:
+            raise Exception("session_ids must not be empty to get recent session_id")
+
+        p = r'.+-(\d+)$'
+        sorted_ids = sorted([(s,  do_cap_match(p, s[1])) for s in sessions_ids], key=lambda x: x[1])
+
+        return sorted_ids[-1][0]
 
     def _get_session_dirs(self) -> List[str]:
         if self.session_id:
