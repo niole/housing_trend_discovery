@@ -35,13 +35,17 @@ class Parser(ABC):
         return []
 
 
-    def __init__(self, sid: Optional[str] = None, scraper_name: Optional[str] = None):
+    def __init__(self,
+            sid: Optional[str] = None,
+            scraper_name: Optional[str] = None,
+            data_base_path: Optional[str] = None):
         """
         if session id provided, parses specific session
         if scraper_name provided, parses the latest session for that parser
         """
         self.session_id = sid
         self.scraper_name = scraper_name
+        self.data_base_path = data_base_path
         self.results = []
 
     def run(self):
@@ -70,10 +74,11 @@ class Parser(ABC):
             sorted([(get_scraper_name(d), posixpath.basename(d)) for d in sessions], key=lambda x: x[0]),
             lambda x: x[0]
         )
-        sessions_groups_lists = [(k, list(vs)) for (k, vs) in session_groups]
+        sessions_outputs = [list(vs) for (_, vs) in session_groups]
 
+        # TODO this doesn't actually sort correctly
         # [(scraper_name, session_id)]
-        latest_unique_sessions = [sorted(gs)[-1] for (_, gs) in sessions_groups_lists if len(gs) > 0]
+        latest_unique_sessions = [sorted(gs)[-1] for gs in sessions_outputs if len(gs) > 0]
 
         keyed_latest_session_paths: List[Tuple[ScraperName, List[HomeScrapeResults]]] = \
             [(session_key, self._get_home_scrape_results(sid)) for (session_key, sid) in latest_unique_sessions]
