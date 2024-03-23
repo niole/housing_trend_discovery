@@ -127,4 +127,4 @@ def no_nones(es: list) -> list:
     return [e for e in es if e is not None]
 
 if __name__ == "__main__":
-    print(Parser(scraper_name="houseinfo").run().to_json())
+    print(Parser(scraper_name="houseinfo", data_base_path="./puppeteer_crawler/data").run().to_json())

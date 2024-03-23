@@ -10,31 +10,36 @@ def build_db_rows(scraper_name: str, data_dir: str, inputs_dir: str) -> List[Pre
     scrape_results = get_parser_results(scraper_name, data_dir)
     scrape_inputs = get_scrape_inputs(scraper_name, inputs_dir)
 
-    street_addr_result_map = dict([(get_street_addr(r.premise_address).lower(), r) for r in scrape_results])
     street_addr_input_map = dict([(get_street_addr(r.address).lower(), r) for r in scrape_inputs])
 
     results = []
-    for (key, location) in street_addr_input_map.items():
-        result = street_addr_result_map.get(key)
-        if result is not None:
+    for r in scrape_results:
+        key = get_street_addr(r.premise_address).lower()
+        location = street_addr_input_map.get(key)
+
+        if location is not None:
             results.append(PremiseDetails(
-                **dict(result),
+                **dict(r),
                 county=location.county,
                 premise_location=location.location
             ))
-        else:
-            print(f"Couldn't find result for input {location}")
+
     return results
 
 @click.command(help="Saves data from scraper into the database")
 @click.option("--scraper_name", help="name of scraper", default=None)
 @click.option("--data", help="Path to data directory", default="./data", type=click.Path(exists=True))
 @click.option("--inputs", help="Path to inputs directory", default="./inputs", type=click.Path(exists=True))
-def cli(scraper_name: Optional[str], data: str, inputs: str):
+@click.option("--to_json", is_flag=True, help="Format the ouput as json", default=True)
+def cli(scraper_name: Optional[str], data: str, inputs: str, to_json: bool):
     if scraper_name is not None:
         results = build_db_rows(scraper_name, data, inputs)
-        # TODO send to a db
-        print(results)
+        if to_json:
+            json_res = json.dumps([json.loads(m.model_dump_json()) for m in results])
+            print(json_res)
+        else:
+            # TODO send to a db
+            print(results)
 
 def get_street_addr(address: str) -> str:
     return address.split(",")[0]
