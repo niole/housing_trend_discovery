@@ -1,3 +1,16 @@
+# Overview
+
+- generate address inputs, write a crawler to ingest those inputs, write a parser to parse the saved pages, all files are named the same: "scraper name"
+- Put everything in their correct respective locations
+- run the crawler: `cd puppeteer_crawler && node <scrapername>.js`
+- Generate the data:
+```sh
+poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
+    --name scrapername \
+    --data ./puppeteer_crawler/data \
+    --inputs ./puppeteer_crawler/inputs
+```
+
 # Data Processing
 ```sh
 # generate addresses to run scraping on
@@ -8,7 +21,7 @@ poetry run python \
     --d 1
 ```
 
-# County Webiste Scraping
+# County Website Scraping
 
 House prices are tracked for free on county government websites. This establishes a plugin framework for writing scrapers
 and html processors, which retrieve this data in a standardized way.
@@ -133,7 +146,7 @@ def parse_p1(url_path: str, page_path: str):
 
 
 if __name__ == "__main__":
-    print(ScraperNameParser().run().to_json())
+    print(ScraperNameParser(data_base_path="~/crawleroutputdir/").run().to_json())
 ```
 
 - run and read output
@@ -145,5 +158,8 @@ poetry run python house_trend_discovery/data_gen/parsers/scrapername.py | jq
 
 Ingest data into the database.
 ```sh
-poetry run python house_trend_discovery/data_gen/dataset.py --name scrapername
+poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
+    --name scrapername \
+    --data ./puppeteer_crawler/data \
+    --inputs ./puppeteer_crawler/inputs
 ```
