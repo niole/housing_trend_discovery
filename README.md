@@ -149,6 +149,7 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_na
 # TODO
 
 - always input address as scrape result address, maybe we should just add the location etc at scrape time also?
+- houseinfo parser will be broken...do we need tests?
 - sometimes, many of the generated addresses are not residential
 - rename houseinfo to snohomish
 - use constants to refer to scraper name in the code
