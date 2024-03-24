@@ -67,7 +67,10 @@ class Base {
         try {
             const data = await readFile(this.getInputsBasePath(), 'utf8');
             const addresses = JSON.parse(data);
-            return addresses.map(a => this.createStartUrlPair(a));
+            return addresses.map(a => {
+                const pair = this.createStartUrlPair(a);
+                return [...pair, a];
+            });
         } catch (err) {
             console.error('Failed to read input data: ', err)
             throw err;
@@ -83,17 +86,24 @@ class Base {
         url: the url of the page
         html: the html contents of the page
     **/
-    async writeOutPath(key, pn, url, html) {
+    writeOutPath(key, pn, url, html) {
         this.writeToPath(`${this.getOutBasePath()}/${key}/page_${pn}.html`, html);
         this.writeToPath(`${this.getOutBasePath()}/${key}/urls/url_${pn}.txt`, url);
+    }
+
+    saveInputJson(key, inputJson) {
+        this.writeToPath(`${this.getInputsDirPath(key)}/inputs.json`, JSON.stringify(inputJson));
     }
 
     run() {
         this.createStartUrlPairs()
             .then(startUrls => {
-                startUrls.forEach(([key, url]) => {
-                    this.initDirs(key);
-                    this.parse(key, url);
+                startUrls.forEach(([key, url, inputJson]) => {
+                    this.initDirs(key)
+                        .then(() => {
+                            this.saveInputJson(key, inputJson)
+                            this.parse(key, url);
+                        });
                 });
             })
             .catch(e => {
@@ -133,16 +143,17 @@ class Base {
         return `${this.getOutBasePath()}/${key}/screenshots`;
     }
 
+    getInputsDirPath(key) {
+        return `${this.getOutBasePath()}/${key}/inputs`;
+    }
+
     async initDirs(key) {
-        try {
-              await mkdir(this.getOutBasePath(), { recursive: true });
-              await mkdir(`${this.getOutBasePath()}/${key}`, { recursive: true });
-              await mkdir(this.getScreenshotsDirPath(key), { recursive: true });
-              const createDir = await mkdir(`${this.getOutBasePath()}/${key}/urls`, { recursive: true });
-              console.log(`created ${createDir}`);
-        } catch (err) {
-              console.error(err.message);
-        }
+        await mkdir(this.getOutBasePath(), { recursive: true });
+        await mkdir(`${this.getOutBasePath()}/${key}`, { recursive: true });
+        await mkdir(this.getScreenshotsDirPath(key), { recursive: true });
+        await mkdir(this.getInputsDirPath(key), { recursive: true });
+        const createDir = await mkdir(`${this.getOutBasePath()}/${key}/urls`, { recursive: true });
+        console.log(`created ${createDir}`);
     }
 }
 

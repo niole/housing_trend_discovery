@@ -7,7 +7,10 @@ import os
 import re
 from itertools import groupby
 from typing import List, Optional, Tuple, NewType, TypeAlias
-from house_trend_discovery.data_gen.models import PremiseScrapeResult
+from house_trend_discovery.data_gen.models import PremiseDetails
+from house_trend_discovery.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 """
 gets the pages for you and formats the output
@@ -20,17 +23,18 @@ ScraperName = NewType("ScraperName", str)
 PageNumber = NewType("PageNumber", int)
 UrlPath = NewType("UrlPath", str)
 PagePath = NewType("PagePath", str)
-HomeScrapeResults: TypeAlias = List[Tuple[PageNumber, UrlPath, PagePath]]
+ScrapeInputs = NewType("ScrapeInputs", dict)
+HomeScrapeResults: TypeAlias = List[Tuple[PageNumber, UrlPath, PagePath, ScrapeInputs]]
 
 class Parser(ABC):
     session_id: Optional[str] = None
     scraper_name: Optional[str] = None
-    results: List[PremiseScrapeResult] = []
+    results: List[PremiseDetails] = []
 
     data_base_path = "house_trend_discovery/data_gen/scraper/data"
 
     @abstractmethod
-    def parse(self, output_file_paths: dict[str, List[Tuple[int, str, str]]]) -> List[PremiseScrapeResult]:
+    def parse(self, output_file_paths: dict[str, List[Tuple[int, str, str]]]) -> List[PremiseDetails]:
         print('parser base class output file paths: \n', output_file_paths)
         return []
 
@@ -56,7 +60,7 @@ class Parser(ABC):
     def to_json(self) -> str:
         return json.dumps([json.loads(r.model_dump_json()) for r in self.results])
 
-    def get_results(self) -> List[PremiseScrapeResult]:
+    def get_results(self) -> List[PremiseDetails]:
         return self.results
 
     def _get_scraper_output_file_paths(self) -> dict[ScraperName, List[HomeScrapeResults]]:
@@ -109,6 +113,16 @@ class Parser(ABC):
         home_scrape_results = []
         home_dirs = glob(f"{self.data_base_path}/{session_id}/*")
         for home_dir in home_dirs:
+
+            # get inputs json if they exist
+            inputs_json = None
+            try:
+                inputs_file_path = f"{home_dir}/inputs/inputs.json"
+                with open(inputs_file_path, 'r') as f:
+                    inputs_json = json.load(f)
+            except Exception as e:
+                logger.warn("Failed to get inputs", e)
+
             pages_path = f"{home_dir}/*.html"
             urls_path = f"{home_dir}/urls/*.txt"
 
@@ -117,7 +131,7 @@ class Parser(ABC):
 
             url_map = dict([(int(do_cap_match(url_p, p)), p) for p in urls])
             page_map = dict([(int(do_cap_match(page_p, p)), p) for p in pages])
-            home_scrape_results.append([(i, url_map[i], page_map[i]) for i in range(1, len(urls)+1)])
+            home_scrape_results.append([(i, url_map[i], page_map[i], inputs_json) for i in range(1, len(urls)+1)])
 
         return home_scrape_results
 

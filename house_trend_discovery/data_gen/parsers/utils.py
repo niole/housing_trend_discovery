@@ -19,6 +19,11 @@ def parse_table(soup_table) -> dict[str, list[str]]:
 
 def parse_sideways_table(table) -> dict[str, list[str]]:
     top_row_cells = table.find('tr').find_all('td')
+    if len(top_row_cells) == 0:
+        top_row_cells = table.find_all('th')
+        if len(top_row_cells) == 0:
+            raise Exception("No top row cells found when parsing sideways table")
+
     table_width = len(top_row_cells)
 
     cells = [t.get_text().strip() for t in table.find_all('td')]

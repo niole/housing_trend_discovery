@@ -23,18 +23,17 @@ class Location(BaseModel):
     county: County
     location: LatLng
 
-class PremiseScrapeResult(BaseModel):
+class PremiseDetails(BaseModel):
     assessment_urls: List[Optional[str]]
     premise_address: str
     year_assessed: int
     dollar_value: int
+    county: County
+    premise_location: LatLng
+
     parcel_number: Optional[str] = None
     sq_feet: Optional[int] = None
     year_built: Optional[int] = None
     bed_count: Optional[int] = None
     bath_count: Optional[float] = None
     failure_reason: Optional[str] = None
-
-class PremiseDetails(PremiseScrapeResult):
-    county: County
-    premise_location: LatLng

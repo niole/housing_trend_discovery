@@ -6,13 +6,7 @@ and html processors, which retrieve this data in a standardized way.
 - generate address inputs, write a crawler to ingest those inputs, write a parser to parse the saved pages, all files are named the same: "scraper name"
 - Put everything in their correct respective locations
 - run the crawler: `cd puppeteer_crawler && node <scrapername>.js`
-- Generate the data:
-```sh
-poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
-    --scraper_name scrapername \
-    --data ./puppeteer_crawler/data \
-    --inputs ./puppeteer_crawler/inputs
-```
+- Generate the data, by calling `house_trend_discovery/data_gen/dataset/dataset.py`
 
 ## Generate address inputs for crawler
 ```sh
@@ -77,6 +71,10 @@ puppeteer_crawler/data/
 - {session_id}/ # determined by the scraper base, it's name and the date, scrapername-12347879
     - {key}/ # determined by the scraper implementation, corresponds to an individual house, encodedKey
         - page_1.html
+        - inputs/ # the inputs for this house
+            - inputs.json
+        - screenshots/ # the scrapers save any screenshots in here
+            - 1.png
         - urls/
             - url_1.txt
 ```
@@ -148,7 +146,6 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_na
 
 # TODO
 
-- always input address as scrape result address, maybe we should just add the location etc at scrape time also?
 - houseinfo parser will be broken...do we need tests?
 - sometimes, many of the generated addresses are not residential
 - rename houseinfo to snohomish

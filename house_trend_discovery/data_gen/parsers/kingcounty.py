@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from typing import List, Tuple
-from house_trend_discovery.data_gen.models import PremiseScrapeResult
+from house_trend_discovery.data_gen.models import PremiseDetails, County, LatLng
 from house_trend_discovery.data_gen.parsers.parser import Parser as BaseParser, ScraperName, HomeScrapeResults
 from house_trend_discovery.data_gen.parsers.utils import parse_sideways_table, parse_table, get_nums
 from house_trend_discovery.get_logger import get_logger
@@ -8,18 +8,18 @@ from house_trend_discovery.get_logger import get_logger
 logger = get_logger(__name__)
 
 class Parser(BaseParser):
-    def parse(self, output_file_paths: dict[ScraperName, List[HomeScrapeResults]]) -> List[PremiseScrapeResult]:
+    def parse(self, output_file_paths: dict[ScraperName, List[HomeScrapeResults]]) -> List[PremiseDetails]:
         king_county_result_paths = output_file_paths['kingcounty']
 
         return self._ingest_houseinfo_scrape_results(king_county_result_paths)
 
-    def _ingest_houseinfo_scrape_results(self, paths: List[HomeScrapeResults]) -> List[PremiseScrapeResult]:
+    def _ingest_houseinfo_scrape_results(self, paths: List[HomeScrapeResults]) -> List[PremiseDetails]:
         # each homescrapereults is the list of results for 1 home
         results = []
 
         for home_results in paths:
             # only 1 page is saved for kingcounty results
-            (_, url_path, page_path) = home_results[0]
+            (_, url_path, page_path, inputs) = home_results[0]
             url = None
             html = None
             with open(url_path, 'r') as f:
@@ -40,8 +40,6 @@ class Parser(BaseParser):
                 logger.debug(f"building_info_table \n {building_info_table}")
 
                 parcel_number = parcel_table['Parcel Number'][0]
-                premise_address = parcel_table['Site Address'][0] # TODO address is not complete
-                # we use the input address in the dataset upload script
                 year_built = int(building_info_table['Year Built'][0])
                 sq_feet = int(building_info_table['Total Square Footage'][0])
                 bed_count = int(building_info_table['Number Of Bedrooms'][0])
@@ -57,9 +55,9 @@ class Parser(BaseParser):
                     year_assessed = int(str_year_assessed)
                     dollar_value = get_nums(str_dollar_value)
                     if year_assessed >= year_built:
-                        res = PremiseScrapeResult(
+                        res = PremiseDetails(
+                            premise_address = inputs["address"],
                             assessment_urls=[url],
-                            premise_address=premise_address,
                             year_assessed=year_assessed,
                             dollar_value=dollar_value,
                             parcel_number=parcel_number,
@@ -67,6 +65,8 @@ class Parser(BaseParser):
                             year_built=year_built,
                             bed_count=bed_count,
                             bath_count=bath_count,
+                            county = County(**inputs['county']),
+                            premise_location = LatLng(**inputs['location'])
                         )
                         results.append(res)
             else:
