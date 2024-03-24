@@ -5,6 +5,7 @@ import re
 from typing import List, Tuple
 from house_trend_discovery.data_gen.models import PremiseScrapeResult
 from house_trend_discovery.data_gen.parsers.parser import Parser as BaseParser, ScraperName, HomeScrapeResults
+from house_trend_discovery.data_gen.parsers.utils import parse_table, combine_results, get_file, get_nums, parse_sideways_table
 
 """
 parses html for output from the houseinfo scrapy spider
@@ -61,13 +62,6 @@ class Parser(BaseParser):
 
         return results
 
-def get_nums(s):
-    s = s.replace(',', '')
-    m = re.search(r'(\d+)', s)
-    if m is not None:
-        return int(m.group(0))
-    return None
-
 def parse_p1(url_path: str, page_path: str):
     """
     parcel number and address
@@ -88,43 +82,20 @@ def parse_p2(url_path: str, page_path: str):
     soup = BeautifulSoup(html, 'html.parser')
     property_value_headers = [t.get_text() for t in soup.find('table', id='mPropertyValues').find_all('th')]
     year_headers = [get_nums(t) for t in property_value_headers]
-    table_width = len(year_headers)
 
-    cells = [t.get_text() for t in soup.find('table', id='mPropertyValues').find_all('td')]
-    table_map = {}
+    property_values_table = parse_sideways_table(soup.find('table', id='mPropertyValues'))
 
-    # parse sideways table
-    for i in range(0, len(cells), table_width):
-        header = cells[i]
-        table_map[header] = [get_nums(t) for t in cells[i+1:i+table_width]]
+    table_map = dict([(header, [get_nums(c) for c in cells]) for (header, cells) in property_values_table.items()])
 
     structures_table = parse_table(soup.find('table', id='mRealPropertyStructures'))
 
     return combine_results(table_map, structures_table, {'url2':url, 'page2': html, 'years_assessed': year_headers})
-
-def combine_results(*argv) -> dict:
-    res = {}
-    for r in argv:
-        res.update(r)
-    return res
-
-def parse_table(soup_table):
-    headers = [t.get_text() for t in soup_table.find_all('th')]
-    cells = [t.get_text() for t in soup_table.find_all('td')]
-    return dict(zip(headers, cells))
 
 def parse():
     p1 = parse_p1()
     p2 = parse_p2()
     print(p1)
     print(p2)
-
-def get_file(filename):
-    with open(filename, 'r') as f:
-        return f.read()
-
-def no_nones(es: list) -> list:
-    return [e for e in es if e is not None]
 
 if __name__ == "__main__":
     print(Parser(scraper_name="houseinfo", data_base_path="./puppeteer_crawler/data").run().to_json())

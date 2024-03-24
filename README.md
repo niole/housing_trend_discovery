@@ -88,10 +88,13 @@ Then define a parser to read the data into usable data structures.
 - Example
 ```python
 #house_trend_discovery/data_gen/parsers/scrapername.py
-from house_trend_discovery.data_gen.parsers.parser import Parser, ScraperName, HomeScrapeResults
+from typing import List, Tuple
+from house_trend_discovery.data_gen.models import PremiseScrapeResult
+from house_trend_discovery.data_gen.parsers.parser import Parser as ParserBase, ScraperName, HomeScrapeResults
 from bs4 import BeautifulSoup
 
-class ScraperNameParser(Parser):
+# parser must be named "Parser" to work with dataset.py script
+class Parser(ParserBase):
     def parse(self, output_file_paths: dict[ScraperName, List[HomeScrapeResults]]) -> List[PremiseScrapeResult]:
         houseinfo_scrape_results = self._ingest_houseinfo_scrape_results(output_file_paths)
         return list(chain(*[self._build_scrape_result(r) for r in houseinfo_scrape_results]))
@@ -128,7 +131,7 @@ def parse_p1(url_path: str, page_path: str):
 
 
 if __name__ == "__main__":
-    print(ScraperNameParser(data_base_path="~/crawleroutputdir/").run().to_json())
+    print(Parser(data_base_path="~/crawleroutputdir/").run().to_json())
 ```
 
 - run and read output
@@ -140,12 +143,12 @@ poetry run python house_trend_discovery/data_gen/parsers/scrapername.py | jq
 
 Ingest data into the database.
 ```sh
-poetry run python house_trend_discovery/data_gen/dataset/dataset.py \
-    --name scrapername \
-    --data ./puppeteer_crawler/data \
-    --inputs ./puppeteer_crawler/inputs
+poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_name scrapername
 ```
 
 # TODO
 
+- always input address as scrape result address, maybe we should just add the location etc at scrape time also?
 - sometimes, many of the generated addresses are not residential
+- rename houseinfo to snohomish
+- use constants to refer to scraper name in the code
