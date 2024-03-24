@@ -146,7 +146,7 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_na
 
 # TODO
 
-- houseinfo parser will be broken...do we need tests?
 - sometimes, many of the generated addresses are not residential
 - rename houseinfo to snohomish
 - use constants to refer to scraper name in the code
+- tests
