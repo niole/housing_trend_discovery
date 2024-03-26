@@ -146,6 +146,16 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_na
 
 # TODO
 
+## api server
+
+- make server
+- put data in DB
+- support users
+- api key issuing, expiration, rotation
+
+## data generation
+
+- location data generation is not distributed evenly throughout entire city
 - sometimes, many of the generated addresses are not residential
 - rename houseinfo to snohomish
 - use constants to refer to scraper name in the code
