@@ -56,21 +56,28 @@ class PremiseDetails(BaseModel):
 
 # SQLAlchemy models
 
+class CountyModel(OrmBase):
+    __tablename__ = 'county'
+    id = Column('id', Uuid, primary_key=True)
+    premise_id = Column(Uuid, ForeignKey('premise_details.id', ondelete='CASCADE'))
+    name: Mapped[str]
+    state: Mapped[str]
+
 class AssessmentUrlModel(OrmBase):
     __tablename__ = 'assessment_urls'
     id = Column('id', Uuid, primary_key=True)
-    premise_id = Column(Uuid, ForeignKey('premise_details.id'))
+    premise_id = Column(Uuid, ForeignKey('premise_details.id', ondelete='CASCADE'))
     url: Mapped[str]
 
 class PremiseDetailsModel(OrmBase):
     __tablename__ = 'premise_details'
 
     id = Column('id', Uuid, primary_key=True)
-    assessment_urls = relationship("AssessmentUrlModel")
+    assessment_urls = relationship('AssessmentUrlModel', cascade="all,delete,delete-orphan", backref='premise_details')
     premise_address: Mapped[str]
     year_assessed: Mapped[int]
     dollar_value: Mapped[int]
-    county: Mapped[str]
+    county = relationship('CountyModel', cascade="all,delete,delete-orphan", backref='premise_details')
     premise_location = Column('premise_location', Geography('POINT'))
 
     parcel_number: Mapped[Optional[str]] = None
@@ -81,6 +88,7 @@ class PremiseDetailsModel(OrmBase):
     failure_reason: Mapped[Optional[str]] = None
 
 PremiseDetailsModel.__table__.drop(engine)
-AssessmentUrlModel.__table__.drop(engine)
+
 PremiseDetailsModel.__table__.create(engine)
+CountyModel.__table__.create(engine)
 AssessmentUrlModel.__table__.create(engine)
