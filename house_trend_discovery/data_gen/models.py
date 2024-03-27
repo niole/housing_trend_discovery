@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from pydantic_extra_types.coordinate import Latitude, Longitude
 from house_trend_discovery.data_gen.create_db_engine import engine
 from sqlalchemy.orm import Mapped, relationship
-from sqlalchemy import Uuid, Column
+from sqlalchemy import Uuid, Column, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from typing import Optional, List
 from geoalchemy2 import Geography
@@ -59,6 +59,7 @@ class PremiseDetails(BaseModel):
 class AssessmentUrlModel(OrmBase):
     __tablename__ = 'assessment_urls'
     id = Column('id', Uuid, primary_key=True)
+    premise_id = Column(Uuid, ForeignKey('premise_details.id'))
     url: Mapped[str]
 
 class PremiseDetailsModel(OrmBase):
