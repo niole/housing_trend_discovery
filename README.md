@@ -155,6 +155,8 @@ poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_na
 
 ## data generation
 
+- deploy postgres with postgis and install geoalchemy2 and sql alchemy and integrate with pydantic models,
+Geography column type and geometry type Point
 - location data generation is not distributed evenly throughout entire city
 - sometimes, many of the generated addresses are not residential
 - rename houseinfo to snohomish

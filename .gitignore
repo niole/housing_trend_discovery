@@ -2,3 +2,4 @@
 *.json
 **/*/__pycache__/**/*
 house_trend_discovery/data_gen/scraper/data/**/*
+*.db
