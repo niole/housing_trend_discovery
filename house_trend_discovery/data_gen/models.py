@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from pydantic_extra_types.coordinate import Latitude, Longitude
 from house_trend_discovery.data_gen.create_db_engine import engine
-import sqlalchemy as sa
-from sqlalchemy import Uuid
+from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy import Uuid, Column
 from sqlalchemy.ext.declarative import declarative_base
 from typing import Optional, List
 from geoalchemy2 import Geography
@@ -56,16 +56,30 @@ class PremiseDetails(BaseModel):
 
 # SQLAlchemy models
 
+class AssessmentUrlModel(OrmBase):
+    __tablename__ = 'assessment_urls'
+    id = Column('id', Uuid, primary_key=True)
+    url: Mapped[str]
+
 class PremiseDetailsModel(OrmBase):
     __tablename__ = 'premise_details'
 
-    id = sa.Column('id', Uuid, primary_key=True)
-    assessment_urls = sa.Column('assessment_urls', sa.String())
-    premise_address = sa.Column('premise_address', sa.String())
-    year_assessed = sa.Column('year_assessed', sa.Integer())
-    dollar_value = sa.Column('dollar_value', sa.Integer())
+    id = Column('id', Uuid, primary_key=True)
+    assessment_urls = relationship("AssessmentUrlModel")
+    premise_address: Mapped[str]
+    year_assessed: Mapped[int]
+    dollar_value: Mapped[int]
+    county: Mapped[str]
+    premise_location = Column('premise_location', Geography('POINT'))
 
-    premise_location = sa.Column('premise_location', Geography('POINT'))
+    parcel_number: Mapped[Optional[str]] = None
+    sq_feet: Mapped[Optional[int]] = None
+    year_built: Mapped[Optional[int]] = None
+    bed_count: Mapped[Optional[int]] = None
+    bath_count: Mapped[Optional[float]] = None
+    failure_reason: Mapped[Optional[str]] = None
 
-#PremiseDetailsModel.__table__.drop(engine)
+PremiseDetailsModel.__table__.drop(engine)
+AssessmentUrlModel.__table__.drop(engine)
 PremiseDetailsModel.__table__.create(engine)
+AssessmentUrlModel.__table__.create(engine)
