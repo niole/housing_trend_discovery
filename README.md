@@ -144,6 +144,12 @@ Ingest data into the database.
 poetry run python house_trend_discovery/data_gen/dataset/dataset.py --scraper_name scrapername
 ```
 
+# Start postgres
+
+```sh
+docker compose -f postgres.yml up
+```
+
 # TODO
 
 ## api server
