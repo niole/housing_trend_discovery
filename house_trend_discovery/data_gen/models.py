@@ -59,25 +59,28 @@ class PremiseDetails(BaseModel):
 class CountyModel(OrmBase):
     __tablename__ = 'county'
     id = Column('id', Uuid, primary_key=True)
-    premise_id = Column(Uuid, ForeignKey('premise_details.id', ondelete='CASCADE'))
     name: Mapped[str]
     state: Mapped[str]
 
 class AssessmentUrlModel(OrmBase):
     __tablename__ = 'assessment_urls'
     id = Column('id', Uuid, primary_key=True)
-    premise_id = Column(Uuid, ForeignKey('premise_details.id', ondelete='CASCADE'))
+    premise_id = Column(Uuid, ForeignKey('premise_details.id', ondelete="CASCADE"))
     url: Mapped[str]
 
 class PremiseDetailsModel(OrmBase):
     __tablename__ = 'premise_details'
 
     id = Column('id', Uuid, primary_key=True)
-    assessment_urls = relationship('AssessmentUrlModel', cascade="all,delete,delete-orphan", backref='premise_details')
+    assessment_urls: Mapped[List["AssessmentUrlModel"]] = relationship(
+        cascade="all,delete,delete-orphan", back_populates="premise_details", passive_deletes=True
+    )
     premise_address: Mapped[str]
     year_assessed: Mapped[int]
     dollar_value: Mapped[int]
-    county = relationship('CountyModel', cascade="all,delete,delete-orphan", backref='premise_details')
+    county: Mapped["CountyModel"]  = relationship(
+        cascade="all,delete,delete-orphan", back_populates="premise_details", passive_deletes=True
+    )
     premise_location = Column('premise_location', Geography('POINT'))
 
     parcel_number: Mapped[Optional[str]] = None
@@ -87,6 +90,8 @@ class PremiseDetailsModel(OrmBase):
     bath_count: Mapped[Optional[float]] = None
     failure_reason: Mapped[Optional[str]] = None
 
+CountyModel.__table__.drop(engine)
+AssessmentUrlModel.__table__.drop(engine)
 PremiseDetailsModel.__table__.drop(engine)
 
 PremiseDetailsModel.__table__.create(engine)
